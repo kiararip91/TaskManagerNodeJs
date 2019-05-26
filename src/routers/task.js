@@ -61,7 +61,7 @@ router.post("/tasks", async (req, res) => {
 
 router.patch("/tasks/:id", async (req, res) => {
     const operations = Object.keys(req.body)
-    const allowedOperations = ["description", "status"]
+    const allowedOperations = ["description", "completed"]
 
     const validOperation = operations.every((update) => { return allowedOperations.includes(update)})
 
@@ -71,7 +71,11 @@ router.patch("/tasks/:id", async (req, res) => {
 
 
     try{
-        const task = await Task.findByIdAndUpdate(req.params.id, req.body, {new : true, runValidators : true})
+        const task = await Task.findById(req.params.id)
+        
+        operations.forEach((operation) => { task[operation] = req.body[operation]})
+        task.save()
+        //const task = await Task.findByIdAndUpdate(req.params.id, req.body, {new : true, runValidators : true})
         if(!task){
             return res.status(404).send({error : "task not found"})
         }
