@@ -2,6 +2,7 @@ const mongoose = require("mongoose")
 const validator = require("validator")
 const bycript = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+const Task = require("../models/task")
 
 const userSchema = mongoose.Schema({
     name : {
@@ -47,6 +48,15 @@ const userSchema = mongoose.Schema({
             required: true
         }
     }]
+},{
+    timestamps: true
+})
+
+userSchema.virtual("tasks", {
+    ref: "Task",
+    localField : "_id",
+    foreignField : "owner"
+
 })
 
 userSchema.statics.findByUserCredentials = async (email, password) => {
@@ -66,11 +76,29 @@ userSchema.statics.findByUserCredentials = async (email, password) => {
     return user
 }
 
+userSchema.methods.toJSON = function() {
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.tokens
+    delete userObject.password
+    console.log("to json" + JSON.stringify(userObject))
+
+    return userObject
+}
 userSchema.methods.generateAuthToken = async function() {
     const user = this
     const token = jwt.sign({_id: user._id.toString() }, "thisisthekey")
     return token
 }
+
+//Remore user tasks when removing a user
+userSchema.pre("remove", async function(next){
+    const user = this
+    await Task.deleteMany({owner: user.id})
+
+    next()
+})
 //Hash the plain text password before saving
 userSchema.pre("save", async function(next) {
     const user = this

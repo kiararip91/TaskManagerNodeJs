@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
-const bycript = require("bcryptjs")
 
-const Task = mongoose.model("Task", {
+//We can customize the schema only if we explicitely create it (eg. timestamps)
+const taskSchema = new mongoose.Schema({
     description : {
         type: String,
         required : true,
@@ -10,7 +10,16 @@ const Task = mongoose.model("Task", {
     completed : {
         type: Boolean,
         default : false
+    },
+    owner : {
+        type : mongoose.Schema.Types.ObjectId,
+        required : true,
+        ref : "User"
     }
+},
+{
+    timestamps: true
 })
+const Task = mongoose.model("Task", taskSchema)
 
 module.exports = Task
