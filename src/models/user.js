@@ -4,110 +4,111 @@ const bycript = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const Task = require("../models/task")
 
+// eslint-disable-next-line new-cap
 const userSchema = mongoose.Schema({
-    name : {
-        type: String,
-        required : true,
-        trim : true
-    },
-    email : {
-        type: String,
-        unique: true,
-        required: true,
-        trim : true,
-        lowercase : true,
-        validate(value) {
-            if(!validator.isEmail(value)){
-                throw new Error("Email not valid")
-            }
-        }
-    },
-    password : {
-        type: String,
-        required: true,
-        trim : true,
-        minlength : 7,
-        validate(value) {
-            if(value.includes("password")){
-                throw new Error("Password not valid")
-            }
-        }
-    },
-    age : {
-        type: Number,
-        default: 0,
-        validate(value) {
-            if(value < 0){
-                throw new Error("Age must be a positive number")
-            }
-        }
-    },
-    tokens: [{
-        token: {
-            type: String,
-            required: true
-        }
-    }]
-},{
-    timestamps: true
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+    trim: true,
+    lowercase: true,
+    validate(value) {
+      if (!validator.isEmail(value)) {
+        throw new Error("Email not valid")
+      }
+    }
+  },
+  password: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 7,
+    validate(value) {
+      if (value.includes("password")) {
+        throw new Error("Password not valid")
+      }
+    }
+  },
+  age: {
+    type: Number,
+    default: 0,
+    validate(value) {
+      if (value < 0) {
+        throw new Error("Age must be a positive number")
+      }
+    }
+  },
+  tokens: [{
+    token: {
+      type: String,
+      required: true
+    }
+  }],
+  avatar: {
+    type: Buffer
+  }
+}, {
+  timestamps: true
 })
 
 userSchema.virtual("tasks", {
-    ref: "Task",
-    localField : "_id",
-    foreignField : "owner"
+  ref: "Task",
+  localField: "_id",
+  foreignField: "owner"
 
 })
 
 userSchema.statics.findByUserCredentials = async (email, password) => {
+  const user = await User.findOne({email})
+  if (!user) {
+    throw new Error("Unable to login")
+  }
 
-    const user = await User.findOne({email})
-    if(!user){
-        
-        throw new Error("Unable to login")
-    }
+  const isMatch = await bycript.compare(password, user.password)
 
-    const isMatch = await bycript.compare(password, user.password)
+  if (!isMatch) {
+    throw new Error("Unable to login")
+  }
 
-    if(!isMatch){
-        throw new Error("Unable to login")
-    }
-
-    return user
+  return user
 }
 
 userSchema.methods.toJSON = function() {
-    const user = this
-    const userObject = user.toObject()
+  const user = this
+  const userObject = user.toObject()
 
-    delete userObject.tokens
-    delete userObject.password
-    console.log("to json" + JSON.stringify(userObject))
+  delete userObject.tokens
+  delete userObject.password
+  delete userObject.avatar
 
-    return userObject
+  return userObject
 }
 userSchema.methods.generateAuthToken = async function() {
-    const user = this
-    const token = jwt.sign({_id: user._id.toString() }, "thisisthekey")
-    return token
+  const user = this
+  const token = jwt.sign({_id: user._id.toString()}, "thisisthekey")
+  return token
 }
 
-//Remore user tasks when removing a user
-userSchema.pre("remove", async function(next){
-    const user = this
-    await Task.deleteMany({owner: user.id})
+// Remove user tasks when removing a user
+userSchema.pre("remove", async function(next) {
+  const user = this
+  await Task.deleteMany({owner: user.id})
 
-    next()
+  next()
 })
-//Hash the plain text password before saving
+// Hash the plain text password before saving
 userSchema.pre("save", async function(next) {
-    const user = this
-    if(user.isModified("password")){
-        user.password = await bycript.hash(user.password, 8)
-
-    }
-    //Call next when you are done
-    next()
+  const user = this
+  if (user.isModified("password")) {
+    user.password = await bycript.hash(user.password, 8)
+  }
+  // Call next when you are done
+  next()
 })
 
 const User = mongoose.model("User", userSchema)
