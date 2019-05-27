@@ -19,6 +19,7 @@
         "comma-dangle": "off",
         "brace-style": "warn",
         "space-before-blocks": "warn",
-        "spaced-comment": "warn"
+        "spaced-comment": "warn",
+        "indent": "off"
     }
 }

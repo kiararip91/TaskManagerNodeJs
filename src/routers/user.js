@@ -4,6 +4,7 @@ const auth = require('../middleware/auth')
 const User = require('../models/user')
 const multer = require('multer')
 const sharp = require('sharp')
+const {sendWelcomeEmail, sendGoodByeEmail} = require('../email/account')
 
 router.post('/users/login', async (req, res) => {
   try {
@@ -41,6 +42,7 @@ router.post('/users/logoutall', auth, async (req, res) => {
   }
 })
 
+// Create new user
 router.post('/users', async (req, res) => {
   const user = new User(req.body)
 
@@ -48,6 +50,7 @@ router.post('/users', async (req, res) => {
     const token = await user.generateAuthToken()
     user.tokens = user.tokens.concat({token})
     await user.save()
+    sendWelcomeEmail(user.email, user.name)
     res.status(201).send({user, token})
   } catch (error) {
     res.status(400).send('An error occurred ' + error)
@@ -61,13 +64,15 @@ router.post('/users', async (req, res) => {
 
 router.get('/users/me', auth, async (req, res) => {
   res.send(req.user)
-})
+}) 
 
 
 router.patch('/users/me', auth, async (req, res) => {
   const updates = Object.keys(req.body)
   const allowedUpdates = ['name', 'age', 'password', 'email']
-  const validOperation = updates.every((update) => {return allowedUpdates.includes(update)})
+  const validOperation = updates.every((update) => {
+    return allowedUpdates.includes(update)
+})
 
   if (!validOperation) {
     return res.status(400).send({error: 'Invalid Updates!'})
@@ -88,9 +93,8 @@ router.patch('/users/me', auth, async (req, res) => {
 
 router.delete('/users/me', auth, async (req, res) => {
   try {
-    console.log('delete')
     await req.user.remove()
-    console.log('delete')
+    sendGoodByeEmail(req.user.email, req.user.name)
     res.send(req.user)
   } catch (error) {
     res.status(400).send(error)
