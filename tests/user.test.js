@@ -25,7 +25,6 @@ beforeEach(async () => {
 // })
 
 // afterEach(() => {
-    
 // })
 
 test('Should signup a new user', async ()=> {
@@ -85,13 +84,13 @@ test('Should delete user profile', async () => {
             .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
             .send()
             .expect(200)
-    const user  = await User.findById(userOneId)
+    const user = await User.findById(userOneId)
     expect(user).toBeNull()
 })
 
 test('Should not delete user profile (unauthenticate user)', async () => {
     await request(app)
             .delete('/users/me')
-            .send() 
+            .send()
             .expect(401)
 })

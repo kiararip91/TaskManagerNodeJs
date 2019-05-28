@@ -12,7 +12,8 @@ const celsiusToFahrenheit = (temp) => {
 const add = (a, b) => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
-            if(a < 0 || b < 0){
+            if (a < 0 || b < 0) {
+                // eslint-disable-next-line prefer-promise-reject-errors
                 return reject("Numbers must be positive")
             }
             resolve(a + b)

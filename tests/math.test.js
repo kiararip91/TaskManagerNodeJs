@@ -1,3 +1,4 @@
+// eslint-disable-next-line object-curly-spacing
 const { calculateTip, fahrenheitToCelsius, celsiusToFahrenheit, add } = require('../src/math')
 // If the test case does not throw an error it is considered a success
 test('Calculate total with tip', () => {
@@ -5,7 +6,7 @@ test('Calculate total with tip', () => {
     expect(total).toBe(13)
 
     // if (total != 13) {
-    //     throw new Error("Total tip should be 13 found " + total) 
+    //     throw new Error("Total tip should be 13 found " + total)
     // }
 })
 
@@ -32,14 +33,14 @@ test('Test celsiusToFahrenheit', () => {
 // })
 
 test('Should add two numbers', (done) => {
-    add(2,3).then((sum) => {
+    add(2, 3).then((sum) => {
         expect(sum).toBe(5)
         done()
     })
 })
 
 test('Should add two numbers Await Async', async () => {
-    const sum = await add(2,3)
+    const sum = await add(2, 3)
     expect(sum).toBe(5)
 })
 
